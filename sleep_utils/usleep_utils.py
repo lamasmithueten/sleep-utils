@@ -16,17 +16,6 @@ import pandas as pd
 import requests
 from io import BytesIO
 
-def tempfile_wrapper(func):
-    @wraps(func)
-    def wrapped(*args, **kwargs):
-        try:
-            tempfile_name = tempfile.NamedTemporaryFile().name + '.edf'
-            res = func(*args, **kwargs, tmp_edf=tempfile_name)
-        finally:
-            if os.path.isfile(tempfile_name):
-                os.remove(tempfile_name)
-        return res
-    return wrapped
 
 def disable_ssl_verify():
     """will monkey-patch requests made by usleep-api to veryify=False"""
@@ -55,8 +44,8 @@ def score_sleep(raw = None,
               ch_groups=None,
               model=None,
               saveto=None,
-              seconds_per_label=30,
               tmp_edf=None,
+              seconds_per_label=30,
               return_proba=False):
 
     if (raw):
@@ -87,7 +76,7 @@ def score_sleep(raw = None,
         print("Requires either a valid EDF-file OR mne.io.Raw object")
     
 
-@tempfile_wrapper
+#@tempfile_wrapper
 def _score_sleep_raw(raw, 
                     api_token = None,
                     backend = 'sleepyland',
@@ -160,18 +149,23 @@ def _score_sleep_raw(raw,
         print('downsampling to 128 hz')
         raw.resample(128, n_jobs=-2)
 
-    mne.export.export_raw(tmp_edf, raw, fmt='edf', overwrite=True)
-    return _score_sleep_file(tmp_edf, 
-                        api_token = api_token, 
-                        backend = backend, 
-                        backend_url = backend_url,
-                        eeg_chs=eeg_chs, 
-                        eog_chs=eog_chs,
-                        ch_groups=ch_groups, 
-                        model=model, 
-                        saveto=saveto,
-                        seconds_per_label=seconds_per_label,
-                        return_proba=return_proba)
+    try: 
+        tmp_edf = tempfile.NamedTemporaryFile().name + '.edf'
+
+        mne.export.export_raw(tmp_edf, raw, fmt='edf', overwrite=True)
+        return _score_sleep_file(tmp_edf, 
+                            api_token = api_token, 
+                            backend = backend, 
+                            backend_url = backend_url,
+                            eeg_chs=eeg_chs, 
+                            eog_chs=eog_chs,
+                            ch_groups=ch_groups, 
+                            model=model, 
+                            saveto=saveto,
+                            seconds_per_label=seconds_per_label,
+                            return_proba=return_proba)
+    finally:
+        os.remove(tmp_edf)
 
 def delete_all_sessions(api_token):
     """convenience function to delete all sessions and data"""
