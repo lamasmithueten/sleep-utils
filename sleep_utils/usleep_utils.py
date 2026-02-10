@@ -60,7 +60,8 @@ def score_sleep(raw = None,
                 saveto = saveto,
                 seconds_per_label = seconds_per_label,
                 return_proba = return_proba)
-    elif (edf_file):
+    elif edf_file is not None:
+
         return _score_sleep_file(edf_file,
                 api_token = api_token,
                 backend = backend,
