@@ -48,7 +48,8 @@ def score_sleep(raw = None,
               seconds_per_label=30,
               return_proba=False):
 
-    if (raw):
+    if raw is not None:
+
         return _score_sleep_raw(raw,
                 api_token = api_token,
                 backend = backend,
