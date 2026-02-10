@@ -48,7 +48,10 @@ def score_sleep(raw = None,
               seconds_per_label=30,
               return_proba=False):
 
-    if raw is not None:
+    if (raw is None) == (edf_file is None): 
+        raise ValueError('either raw or edf_file has to be provided, not both or neither')
+
+    elif raw is not None:
 
         return _score_sleep_raw(raw,
                 api_token = api_token,
@@ -74,8 +77,6 @@ def score_sleep(raw = None,
                 saveto = saveto,
                 seconds_per_label = seconds_per_label,
                 return_proba = return_proba)
-    else:
-        print("Requires either a valid EDF-file OR mne.io.Raw object")
     
 
 #@tempfile_wrapper
